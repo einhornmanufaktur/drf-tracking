@@ -6,9 +6,14 @@ import traceback
 class BaseLoggingMixin(object):
     logging_methods = '__all__'
     sensitive_fields = {}
+    kind_of_cache_using = None
 
     """Mixin to log requests"""
     def initial(self, request, *args, **kwargs):
+        # This attr shows how a cache was used (all data was given from cache or partially or nothing).
+        # It will be stored to log entry.
+        # Can be equal one of APIRequestLog.KIND_OF_CACHE_USING.keys()
+
         # get IP
         ipaddr = request.META.get("HTTP_X_FORWARDED_FOR", None)
         if ipaddr:
@@ -35,6 +40,7 @@ class BaseLoggingMixin(object):
 
         # create log
         self.request.log = APIRequestLog(
+            request_id=request.id,
             requested_at=now(),
             path=request.path,
             view=view_name,
@@ -93,6 +99,7 @@ class BaseLoggingMixin(object):
             self.request.log.response = response.rendered_content
             self.request.log.status_code = response.status_code
             self.request.log.response_ms = response_ms
+            self.request.log.kind_of_cache_using = self.kind_of_cache_using
             try:
                 self.request.log.save()
             except Exception:

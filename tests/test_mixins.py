@@ -294,3 +294,19 @@ class TestLoggingMixin(APITestCase):
         response = self.client.get('/logging')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(APIRequestLog.objects.all().count(), 0)
+
+    def test_kind_of_cache_using(self):
+        request = APIRequestFactory().get('/logging')
+        request.META['REMOTE_ADDR'] = '127.0.0.9'
+
+        MockLoggingView.as_view()(request).render()
+        log = APIRequestLog.objects.first()
+        self.assertEqual(log.kind_of_cache_using, APIRequestLog.PART_OF_DATA_FROM_CACHE)
+
+    def test_request_id(self):
+        request = APIRequestFactory().get('/logging')
+        request.META['REMOTE_ADDR'] = '127.0.0.9'
+
+        MockLoggingView.as_view()(request).render()
+        log = APIRequestLog.objects.first()
+        self.assertTrue(bool(log.request_id))

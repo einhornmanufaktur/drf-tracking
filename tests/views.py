@@ -18,6 +18,7 @@ class MockNoLoggingView(APIView):
 
 class MockLoggingView(LoggingMixin, APIView):
     def get(self, request):
+        self.kind_of_cache_using = APIRequestLog.PART_OF_DATA_FROM_CACHE
         return Response('with logging')
 
 
